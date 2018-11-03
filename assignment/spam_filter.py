@@ -3,7 +3,7 @@ import pandas as panda
 import re
 
 import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import pandas as panda # data processing, CSV file I/O (e.g. pd.read_csv)
 import re
 
 import string
@@ -12,10 +12,13 @@ import gensim
 
 
 import nltk
+#nltk.download() # to download stopwords corpus
 from nltk.corpus import stopwords
-stopwords = nltk.download('stopwords')
+#stopwords = nltk.download('stopwords')
 from nltk.tokenize import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
+
+
 
 
 #STEPS
@@ -92,12 +95,45 @@ def lemmatizer(words):
     normalised = [lemma.lemmatize(word)for word in words.split()]
     return normalised
 
+'''
 def clean_code(emails):
+    
     excluded_stop_words = remove_stop_words(emails)
     excluded_punctuation = remove_punctuation(excluded_stop_words)
     end_result = lemmatizer(excluded_punctuation)
 
     return end_result
+
+
+    words_to_exclude = set(stopwords.words('english'))
+    exclude = set(string.punctuation)
+    lemma = WordNetLemmatizer()
+
+    word_free = " ".join([i for i in doc.lower().split() if i not in words_to_exclude])
+    punc_free = ''.join(ch for ch in word_free if ch not in exclude)
+    normalized = " ".join(lemma.lemmatize(word) for word in punc_free.split())
+
+    return normalized
+'''
+
+def clean(doc):
+    words_to_exclude = set(stopwords.words('english'))
+    exclude = set(string.punctuation)
+    lemma = WordNetLemmatizer()
+
+    word_free = " ".join([i for i in doc.lower().split() if i not in words_to_exclude])
+    #word_free = remove_stop_words(doc)
+    punc_free = ''.join(ch for ch in word_free if ch not in exclude)
+    normalized = " ".join(lemma.lemmatize(word) for word in punc_free.split())
+
+    print ("NORMALIZED")
+    print (normalized)
+    return normalized
+
+def clean_data(data):
+    return [clean(doc).split(' ') for doc in data]
+
+
 
 '''
 2. Create word dictionary
@@ -107,14 +143,24 @@ def clean_code(emails):
 def create_dictionary(training_set):
     dictionary = gensim.corpora.Dictionary(training_set)
     dictionary.filter_extremes(no_below=20, no_above=0.1)
-    return dictionary
+
+    matrix = [dictionary.doc2bow(doc) for doc in training_set]
+
+    tfidf_model = gensim.models.TfidfModel(matrix, id2word=dictionary)
+    lsi_model = gensim.models.LsiModel(tfidf_model[matrix], id2word=dictionary, num_topics=100)
+
+    topics = lsi_model.print_topics(num_topics=100, num_words=10)
+    for topic in topics:
+        print(topic)
+
+    return matrix
 
 '''
 3. Feature Execution
     -For each email you want a set of data e.g. create a 30,000 for commonly used words
 '''
-def feature_execution():
-    
+#def feature_execution():
+
 
 '''
 4. ML Classifiers
@@ -122,6 +168,10 @@ def feature_execution():
     -And another one
     -`Use body of the email
 '''
+
+#def svm_classifer():
+
+#def
 
 '''
 5. Accuracy 
@@ -138,15 +188,23 @@ emails = get_data("emails.csv")
 print (len(emails)) #Total Size is  517401 - TODO: need to calculate for duplicates
 
 email_bodies = emails.message.as_matrix()
+unique_emails = remove_duplicates(email_bodies)
+
+print('There are a total of {} non-duplicate emails\n'.format(len(unique_emails))) #len - 248930, 70% is 174251
 #unique_emails = remove_duplicates(emails_bodies)
 #print (len(unique_emails))
 
-clean_code = clean_code(email_bodies)
 
-words_training_set = clean_code[0:1000]
+training_set = clean_data(unique_emails[0:20])
+testing_set = clean_data(unique_emails[20:30])
 
-dictionary = create_dictionary(words_training_set)
 
+dictionary = create_dictionary(training_set)
+
+print (dictionary)
+'''
 emails_training_set = email_bodies[0:362181]  #70% of 517401 is
 
 emails_testing_set = email_bodies[362181:]
+
+'''

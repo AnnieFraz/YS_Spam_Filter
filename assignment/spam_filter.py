@@ -123,7 +123,11 @@ def clean(doc):
 
     word_free = " ".join([i for i in doc.lower().split() if i not in words_to_exclude])
     #word_free = remove_stop_words(doc)
+    print ("WORD FREE")
+    print (word_free)
     punc_free = ''.join(ch for ch in word_free if ch not in exclude)
+    print ("PUNC")
+    print (punc_free)
     normalized = " ".join(lemma.lemmatize(word) for word in punc_free.split())
 
     print ("NORMALIZED")
@@ -154,6 +158,8 @@ def create_dictionary(training_set):
         print(topic)
 
     return matrix
+
+def word_frequency():
 
 '''
 3. Feature Execution

@@ -78,14 +78,12 @@ def remove_stop_words(emails):
             clean_code.append(w)
     print (word_tokens)
     print (clean_code)
-    remove_punctuation(clean_code)
     return clean_code
 
 
 def remove_punctuation(clean_code):
     punctuation = set(string.punctuation)
     words = [ch for ch in clean_code if ch not in punctuation]
-    lemmatizer(words)
     return words
 
 
@@ -93,6 +91,13 @@ def lemmatizer(words):
     lemma = WordNetLemmatizer()
     normalised = [lemma.lemmatize(word)for word in words.split()]
     return normalised
+
+def clean_code(emails):
+    excluded_stop_words = remove_stop_words(emails)
+    excluded_punctuation = remove_punctuation(excluded_stop_words)
+    end_result = lemmatizer(excluded_punctuation)
+
+    return end_result
 
 '''
 2. Create word dictionary
@@ -102,13 +107,14 @@ def lemmatizer(words):
 def create_dictionary(training_set):
     dictionary = gensim.corpora.Dictionary(training_set)
     dictionary.filter_extremes(no_below=20, no_above=0.1)
-
     return dictionary
 
 '''
 3. Feature Execution
     -For each email you want a set of data e.g. create a 30,000 for commonly used words
 '''
+def feature_execution():
+    
 
 '''
 4. ML Classifiers
@@ -127,19 +133,17 @@ def create_dictionary(training_set):
 
 emails = get_data("emails.csv")
 
-#emails = remove_duplicates(emails)
+
 
 print (len(emails)) #Total Size is  517401 - TODO: need to calculate for duplicates
 
 email_bodies = emails.message.as_matrix()
+#unique_emails = remove_duplicates(emails_bodies)
+#print (len(unique_emails))
 
-clean_code = remove_stop_words(email_bodies)
+clean_code = clean_code(email_bodies)
 
-no_punctionation = remove_punctuation(clean_code)
-
-words = lemmatizer(no_punctionation)
-
-words_training_set = words[0:1000]
+words_training_set = clean_code[0:1000]
 
 dictionary = create_dictionary(words_training_set)
 

@@ -187,7 +187,7 @@ def word_frequency():
 
 #######MAIN#######
 
-emails = get_data("emails.csv")
+emails = get_data
 
 
 

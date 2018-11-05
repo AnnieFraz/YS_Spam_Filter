@@ -14,12 +14,13 @@ def extract_csv_data(file, cols_to_clean = [], exclude = [[]]):
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-
+'''
 emails = extract_csv_data(
     'spam.csv',
     ['spam'],
     [['notes_inbox', 'discussion_threads']]
 )
+'''
 
 def remove_duplicates(data):
     processed = set()

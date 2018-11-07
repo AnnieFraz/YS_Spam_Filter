@@ -94,7 +94,7 @@ def clean(doc):
     return normalized
 
 def clean_data(data):
-    return [data_prep(doc).split(' ') for doc in data]
+    return [data_prep(doc).split(',') for doc in data]
 
 def create_dictionary(data):
     #dic = gensim.corpora.Dictionary([data.split()])

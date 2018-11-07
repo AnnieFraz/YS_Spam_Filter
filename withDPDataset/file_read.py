@@ -1,8 +1,8 @@
 
-
 import glob
 import numpy
 
+#Ask question about email: 3-385msg2.txt
 
 def remove_subject(file):
     f = open(file, "r+")
@@ -15,45 +15,32 @@ def remove_subject(file):
     f.truncate()
     f.close()
 
-filenames = sorted(glob.glob('test-mails/spmsgc*.txt'))
+def changes_to_list(files, list):
+    for f in files:
+        list.append(f)
+    return list
 
-filenames2 = sorted(glob.glob('test-mails/*-*msg*.txt'))
+test_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/spmsgc*.txt'))
+test_spam = []
+test_spam = changes_to_list(test_spam_files, test_spam)
+print (len(test_spam))
 
-print (len(filenames) + len(filenames2))
+test_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/*-*msg*.txt'))
+test_non_spam = []
+test_non_spam = changes_to_list(test_non_spam_files, test_non_spam)
+print (len(test_non_spam))
 
-test_data_files = []
+train_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/spmsgc*.txt'))
+train_spam = []
+train_spam = changes_to_list(train_spam_files, train_spam)
+print (len(train_spam))
 
-for f in filenames:
-    test_data_files.append(f)
-    remove_subject(f)
-    #print (f)
+train_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/*-*msg*.txt'))
+train_non_spam = []
+train_non_spam = changes_to_list(train_non_spam_files, train_non_spam)
+print (len(train_non_spam))
 
-for f in filenames2:
-    test_data_files.append(f)
-    remove_subject(f)
-    #print (f)
 
-print (len(test_data_files))
-
-filenames3 = sorted(glob.glob('train-mails/spmsgc*.txt'))
-
-filenames4 = sorted(glob.glob('train-mails/*-*msg*.txt'))
-
-print (len(filenames3) + len(filenames4))
-
-train_data_files = []
-
-for f in filenames3:
-    train_data_files.append(f)
-    remove_subject(f)
-    #print (f)
-
-for f in filenames4:
-    train_data_files.append(f)
-    remove_subject(f)
-    #print (f)
-
-print (len(train_data_files))
 
 
 

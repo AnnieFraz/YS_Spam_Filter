@@ -119,9 +119,9 @@ def frequency(data):
     cnt = collections.Counter()
     for word in data:
         cnt[word] += 1
-    print(len(c))
-    print(len(c.items()))
-    print(c.values())
+    # print(len(c))
+    # print(len(c.items()))
+    # print(c.values())
 
     return c
     '''
@@ -140,12 +140,17 @@ def feature_exectration():
   '''
 
 
-
 def support_vector_machine(data, is_spam):
     train_data, test_data, train_is_spam, test_is_spam = train_test_split(data, is_spam, test_size=0.2)
+    param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
 
-    print(train_data)
-    print(train_is_spam)
+
+def param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam):
+
+    print("Training data size: ", len(train_data))
+    print("Test data size: ", len(test_data))
+    # print(train_data)
+    # print(train_is_spam)
     clf = svm.SVC(kernel='linear')
     clf.fit(train_data, train_is_spam)
     # plot_decision_function(train_spam_set, train_non_spam_set, test_spam_set , test_non_spam_set , clf)
@@ -162,15 +167,16 @@ def get_common_words():
             output.extend(word_tokenize(line))
     return output
 
-def feature_extraction(test_spam, common_words):
+
+def feature_extraction(test_spam, common_words, foo_bar):
     data = []
     is_spam = []
-    for email in test_spam[0:3]:
+    for email in test_spam:
         data_sample = [0] * 30000
         email_contents = multiple_email([email])
         test_spam_data = data_prep(email_contents)
         dictionary = frequency(test_spam_data)
-        print (dictionary)
+        # print (dictionary)
         i = 0
         for j in dictionary.values():
             i +=j
@@ -180,32 +186,62 @@ def feature_extraction(test_spam, common_words):
                 index = common_words.index(key)
                 data_sample[index] = value
         data.append(data_sample)
-        is_spam.append(-1)
+        is_spam.append(foo_bar)
     return data, is_spam
 
 
-common_words = get_common_words()
+def main():
+    common_words = get_common_words()
 
-test_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/spmsgc*.txt'))
-test_spam = []
-test_spam = changes_to_list(test_spam_files, test_spam)
+    test_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/spmsgc*.txt'))
+    print ("Test Spam files found: ", len(test_spam_files))
+    test_spam = []
+    test_spam = changes_to_list(test_spam_files, test_spam)
+    test_spam_data, test_spam_is_spam = feature_extraction(test_spam, common_words, 1)
+    print ("Test Spam processed")
 
-data, is_spam = feature_extraction(test_spam, common_words)
+    test_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/*-*msg*.txt'))
+    print ("Test Non-Spam files found: ", len(test_non_spam_files))
+    test_non_spam = []
+    test_non_spam = changes_to_list(test_non_spam_files, test_non_spam)
+    test_not_spam_data, test_not_spam_is_spam = feature_extraction(test_non_spam, common_words, -1)
+    print ("Test Non-Spam processed")
 
-test_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/*-*msg*.txt'))
-test_non_spam = []
-test_non_spam = changes_to_list(test_non_spam_files, test_non_spam)
-test_non_spam_data = data_prep(test_non_spam)
+    train_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/spmsg*.txt'))
+    print ("Train Spam files found: ", len(train_spam_files))
+    train_spam = []
+    train_spam = changes_to_list(train_spam_files, train_spam)
+    train_spam_data, train_spam_is_spam = feature_extraction(train_spam, common_words, 1)
+    print ("Train Spam processed")
 
-data_non_spam, is_non_spam = feature_extraction(test_non_spam, common_words )
+    train_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/*-*msg*.txt'))
+    print ("Train Non-Spam files found: ", len(train_non_spam_files))
+    train_non_spam = []
+    train_non_spam = changes_to_list(train_non_spam_files, train_non_spam)
+    train_not_spam_data, train_not_spam_is_spam = feature_extraction(train_non_spam, common_words, -1)
+    print ("Train Non-Spam processed")
 
-data.extend(data_non_spam)
-is_spam.extend(is_non_spam)
-support_vector_machine(data, is_spam)
+    train_data = []
+    train_is_spam = []
+
+    train_data.extend(train_spam_data)
+    train_data.extend(train_not_spam_data)
+    train_is_spam.extend(train_spam_is_spam)
+    train_is_spam.extend(train_not_spam_is_spam)
+
+    test_data = []
+    test_is_spam = []
+
+    test_data.extend(test_spam_data)
+    test_data.extend(test_not_spam_data)
+    test_is_spam.extend(test_spam_is_spam)
+    test_is_spam.extend(test_not_spam_is_spam)
+
+    param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
 
 
 
-
+main()
 
 
 # train_set = [

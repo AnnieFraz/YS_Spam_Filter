@@ -18,7 +18,7 @@ from sklearn.utils.fixes import signature
 #import matplotlib.pyplot as plt
 
 #Author: Anna Frances Rasburn
-#Python 3
+#Python 3.6.4
 
 def changes_to_list(files, list):
     for f in files:
@@ -106,36 +106,10 @@ def support_vector_machine(data, is_spam):
 def param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam):
     print("Training data size: ", len(train_data))
     print("Test data size: ", len(test_data))
-    clf = svm.SVC(kernel='linear')
+    clf = svm.LinearSVC()
     clf.fit(train_data, train_is_spam)
-
     y_score = clf.decision_function(test_data)
-    average_precision = average_precision_score(test_is_spam, y_score)
-    print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision))
-    precision, recall, _ = precision_recall_curve(test_is_spam,y_score)
-
-    #print(precision)
-    #print(recall)
-
-    F1 = 2 * (precision * recall) / (precision + recall)
-
-    #print(F1)
-    '''
-    step_kwargs = ({'step': 'post'}
-                   if 'step' in signature(plt.fill_between).parameters
-                   else {})
-    plt.figure()
-    plt.step(recall, precision, color='b', alpha=0.2,where='post')
-    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
-
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title(
-        'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
-            .format(average_precision))
-            '''
+    precision, recall, F1 = measurement_metric(test_is_spam, y_score)
     print("Accuracy of SVM: {}%".format(clf.score(test_data, test_is_spam) * 100))
 
 def naive_bayes(train_data, test_data, train_is_spam, test_is_spam):
@@ -145,6 +119,30 @@ def naive_bayes(train_data, test_data, train_is_spam, test_is_spam):
     bayes.fit(train_data, train_is_spam)
     print("Accuracy of Naive Bayes: {}%".format(bayes.score(test_data, test_is_spam) * 100))
 
+def measurement_metric(test_is_spam, y_score):
+    average_precision = average_precision_score(test_is_spam, y_score)
+    print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision))
+    precision, recall, _ = precision_recall_curve(test_is_spam, y_score)
+    print (precision)
+    F1 = 2 * (precision * recall) / (precision + recall)
+
+    '''
+        step_kwargs = ({'step': 'post'}
+                       if 'step' in signature(plt.fill_between).parameters
+                       else {})
+        plt.figure()
+        plt.step(recall, precision, color='b', alpha=0.2,where='post')
+        plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title(
+            'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
+                .format(average_precision))
+                '''
+    return precision, recall, F1
 
 def get_common_words():
     output = []
@@ -222,7 +220,7 @@ def main():
     test_is_spam.extend(test_spam_is_spam)
     test_is_spam.extend(test_not_spam_is_spam)
 
-    #param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
+    param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
     naive_bayes(train_data, test_data, train_is_spam, test_is_spam)
 
 

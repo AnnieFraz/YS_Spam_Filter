@@ -1,40 +1,24 @@
-import pandas as panda
-import re
-import numpy as np  # linear algebra
-import string
-import gensim
-import nltk
-# nltk.download() # to download stopwords corpus
-from nltk.corpus import stopwords
-# stopwords = nltk.download('stopwords')
-from nltk.tokenize import word_tokenize
-from nltk.stem.wordnet import WordNetLemmatizer
-import glob
 import collections
+import glob
+import string
 
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 from sklearn import svm
-
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import average_precision_score
+from sklearn import naive_bayes
+from sklearn.naive_bayes import MultinomialNB
 import numpy as np
 
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.metrics import precision_recall_curve
+from sklearn.utils.fixes import signature
+#import matplotlib.pyplot as plt
 
-
-def plot_decision_function(classifier, sample_weight, axis, title):
-    # plot the decision function
-    xx, yy = np.meshgrid(np.linspace(-4, 5, 500), np.linspace(-4, 5, 500))
-
-    Z = classifier.decision_function(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-
-    # plot the line, the points, and the nearest vectors to the plane
-    axis.contourf(xx, yy, Z, alpha=0.75, cmap=plt.cm.bone)
-    axis.scatter(X[:, 0], X[:, 1], c=y, s=100 * sample_weight, alpha=0.9,
-                 cmap=plt.cm.bone, edgecolors='black')
-
-    axis.axis('off')
-    axis.set_title(title)
-
+#Author: Anna Frances Rasburn
+#Python 3
 
 def changes_to_list(files, list):
     for f in files:
@@ -57,26 +41,18 @@ def multiple_email(emails):
         f = open(emails[i], "r")
         contents = f.read()
         contents_emails.append(contents)
-    # print (contents)
-    # clean_data(contents)
+
     return contents
 
 
-# f = open(emails, "r")
 def remove_stop_words(emails):
     stop_words = set(stopwords.words('english'))
-    # for i in range(len(emails)):
-    # f = open(emails, "r")
-    # contents = f.read()
-    # print(contents)
-    # word_tokens = word_tokenize(emails)
     word_tokens = word_tokenize(emails)
     no_stopwords = []
     for w in word_tokens:
         if w not in stop_words:
             no_stopwords.append(w)
     return no_stopwords
-
 
 
 def remove_punctuation(words):
@@ -119,25 +95,7 @@ def frequency(data):
     cnt = collections.Counter()
     for word in data:
         cnt[word] += 1
-    # print(len(c))
-    # print(len(c.items()))
-    # print(c.values())
-
     return c
-    '''
-    print ("The most common words are", c.most_common())
-    print (len(c))
-    print (c[1][1])
-    return c
-    '''
-
-
-'''
-Part 3
-
-
-def feature_exectration():
-  '''
 
 
 def support_vector_machine(data, is_spam):
@@ -146,37 +104,64 @@ def support_vector_machine(data, is_spam):
 
 
 def param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam):
-
     print("Training data size: ", len(train_data))
     print("Test data size: ", len(test_data))
-    # print(train_data)
-    # print(train_is_spam)
     clf = svm.SVC(kernel='linear')
     clf.fit(train_data, train_is_spam)
-    # plot_decision_function(train_spam_set, train_non_spam_set, test_spam_set , test_non_spam_set , clf)
 
-    # Accuracy
-    clf_predictions = clf.predict(test_data)
-    print("Accuracy: {}%".format(clf.score(test_data, test_is_spam) * 100))
+    y_score = clf.decision_function(test_data)
+    average_precision = average_precision_score(test_is_spam, y_score)
+    print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision))
+    precision, recall, _ = precision_recall_curve(test_is_spam,y_score)
+
+    #print(precision)
+    #print(recall)
+
+    F1 = 2 * (precision * recall) / (precision + recall)
+
+    #print(F1)
+    '''
+    step_kwargs = ({'step': 'post'}
+                   if 'step' in signature(plt.fill_between).parameters
+                   else {})
+    plt.figure()
+    plt.step(recall, precision, color='b', alpha=0.2,where='post')
+    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title(
+        'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(average_precision))
+            '''
+    print("Accuracy of SVM: {}%".format(clf.score(test_data, test_is_spam) * 100))
+
+def naive_bayes(train_data, test_data, train_is_spam, test_is_spam):
+    #list_alpha = np.arange(1 / 100000, 20, 0.11)
+    #for alpha in list_alpha:
+    bayes = MultinomialNB()
+    bayes.fit(train_data, train_is_spam)
+    print("Accuracy of Naive Bayes: {}%".format(bayes.score(test_data, test_is_spam) * 100))
 
 
 def get_common_words():
     output = []
-    with open("annaFile30.txt", "r") as file:
+    with open("commonWords30k.txt", "r") as file:
         for line in file:
             output.extend(word_tokenize(line))
     return output
 
 
-def feature_extraction(test_spam, common_words, foo_bar):
+def feature_extraction(emails_list, common_words, spamClassifier):
     data = []
     is_spam = []
-    for email in test_spam:
+    for email in emails_list:
         data_sample = [0] * 30000
         email_contents = multiple_email([email])
         test_spam_data = data_prep(email_contents)
         dictionary = frequency(test_spam_data)
-        # print (dictionary)
         i = 0
         for j in dictionary.values():
             i +=j
@@ -186,7 +171,7 @@ def feature_extraction(test_spam, common_words, foo_bar):
                 index = common_words.index(key)
                 data_sample[index] = value
         data.append(data_sample)
-        is_spam.append(foo_bar)
+        is_spam.append(spamClassifier)
     return data, is_spam
 
 
@@ -237,54 +222,10 @@ def main():
     test_is_spam.extend(test_spam_is_spam)
     test_is_spam.extend(test_not_spam_is_spam)
 
-    param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
+    #param_support_vector_machine(train_data, test_data, train_is_spam, test_is_spam)
+    naive_bayes(train_data, test_data, train_is_spam, test_is_spam)
 
 
 
 main()
 
-
-# train_set = [
-#     [0, 1],
-#     [1, 1],
-#     [0, 0],
-#     [1, 0],
-#     [0, 1],
-#     [1, 1],
-#     [0, 0],
-#     [1, 0],
-#     [0, 1],
-#     [1, 1],
-#     [0, 0],
-#     [1, 0],
-#     [0, 1],
-#     [1, 1],
-#     [0, 0],
-#     [1, 0],
-#              ]
-# train_answer_set = [1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1, -1, 1, 1, -1, -1]
-#
-# test_set = train_set
-# test_answer_set = train_answer_set
-# clf = svm.SVC(kernel='linear')
-# clf.fit(train_set, train_answer_set)
-# # plot_decision_function(train_set, train_answer_set, test_set, test_answer_set , clf)
-# print (clf.predict([[0, 0]]))
-#
-# support_vector_machine(train_set, train_answer_set)
-'''
-test_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/test-mails/*-*msg*.txt'))
-test_non_spam = []
-test_non_spam = changes_to_list(test_non_spam_files, test_non_spam)
-test_non_spam_data = data_prep(test_non_spam)
-
-train_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/spmsgc*.txt'))
-train_spam = []
-train_spam = changes_to_list(train_spam_files, train_spam)
-train_spam_data = data_prep(train_spam_files)
-
-train_non_spam_files = sorted(glob.glob('spam-non-spam-dataset/train-mails/*-*msg*.txt'))
-train_non_spam = []
-train_non_spam = changes_to_list(train_non_spam_files, train_non_spam)
-train_non_spam_data = data_prep(train_non_spam_files)
-'''
